@@ -12,12 +12,12 @@ namespace PdfConversionFunctionApp
     public class ConvertToPdf
     {
         private readonly FileService _fileService;
-        private readonly PdfOptions _options;
+        private readonly ApiConfig _apiConfig;
 
-        public ConvertToPdf(FileService fileService, IOptions<PdfOptions> options)
+        public ConvertToPdf(FileService fileService, ApiConfig apiConfig)
         {
             _fileService = fileService;
-            _options = options.Value;
+            _apiConfig = apiConfig;
         }
 
         [FunctionName("ConvertToPdf")]
@@ -32,13 +32,18 @@ namespace PdfConversionFunctionApp
                 return new BadRequestObjectResult("Please provide a file.");
             }
 
-            var path = $"{_options.GraphEndpoint}sites/{_options.SiteId}/drive/items/";
+            var path = $"{_apiConfig.GraphEndpoint}sites/{_apiConfig.SiteId}/drive/items/";
+            log.LogInformation("ConvertToPdf - path:" + path);
 
             var fileId = await _fileService.UploadStreamAsync(path, req.Body, req.ContentType);
+            log.LogInformation("ConvertToPdf - fileId:" + fileId);
 
             var pdf = await _fileService.DownloadConvertedFileAsync(path, fileId, "pdf");
+            log.LogInformation("ConvertToPdf - pdf Length:" + pdf.Length);
 
             await _fileService.DeleteFileAsync(path, fileId);
+
+            log.LogInformation("ConvertToPdf - Ending");
 
             return new FileContentResult(pdf, "application/pdf");
         }

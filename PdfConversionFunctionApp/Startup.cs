@@ -12,16 +12,20 @@ namespace PdfConversionFunctionApp
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            builder.Services.AddOptions<AuthenticationOptions>().Configure<IConfiguration>((setttings, configuration) =>
-            {
-                configuration.GetSection("graph").Bind(setttings);
-            });
-            builder.Services.AddOptions<PdfOptions>().Configure<IConfiguration>((setttings, configuration) =>
-            {
-                configuration.GetSection("pdf").Bind(setttings);
-            });
-            builder.Services.AddSingleton<AuthenticationService>();
+            var fileInfo = new FileInfo(Assembly.GetExecutingAssembly().Location);
+            string path = fileInfo.Directory.Parent.FullName;
+            var config = new ConfigurationBuilder()
+                .SetBasePath(Environment.CurrentDirectory)
+                .SetBasePath(path)
+                .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables()
+                .Build();
+
+            var apiConfig = new ApiConfig();
+            config.Bind(nameof(ApiConfig), apiConfig);
+
             builder.Services.AddSingleton<FileService>();
+            builder.Services.AddSingleton(apiConfig);
         }
     }
 }

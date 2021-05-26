@@ -9,12 +9,12 @@ namespace PdfConversionFunctionApp
 {
     public class FileService
     {
-        private readonly AuthenticationService _authenticationService;
+        private readonly ApiConfig _apiConfig;
         private HttpClient _httpClient;
 
-        public FileService(AuthenticationService authenticationService)
+        public FileService(ApiConfig apiConfig)
         {
-            _authenticationService = authenticationService;
+            _apiConfig = apiConfig;
         }
 
         private async Task<HttpClient> CreateAuthorizedHttpClient()
@@ -24,7 +24,7 @@ namespace PdfConversionFunctionApp
                 return _httpClient;
             }
 
-            var token = await _authenticationService.GetAccessTokenAsync();
+            var token = await AuthenticationService.GetAccessTokenAsync(_apiConfig); 
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
